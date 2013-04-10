@@ -39,9 +39,26 @@
     isSaving: false,
 
     init: function() {
+      var _this = this;
+
       this.persistedProperties = {};
       this.dirtyProperties = [];
-      return this._super();
+
+      this._super();
+
+      if (this.resourceProperties) {
+        this.resourceProperties.forEach(function(key) {
+          _this.addObserver(key, function() {
+            if (_this.get(key) !== _this.persistedProperties[key]) {
+              if (!_this.dirtyProperties.contains(key)) {
+                _this.dirtyProperties.pushObject(key);
+              }
+            } else {
+              _this.dirtyProperties.removeObject(key);
+            }
+          });
+        });
+      }
     },
 
     isNew: function() {
@@ -52,16 +69,6 @@
       return this.get('dirtyProperties.length') !== 0;
     }.property('dirtyProperties.length'),
 
-    set: function(key, value) {
-      if (this.resourceProperties.contains(key) && (this.get(key) !== value)) {
-        if (!this.dirtyProperties.contains(key)) {
-          this.dirtyProperties.pushObject(key);
-        }
-      }
-
-      return this._super(key, value);
-    },
-
     serialize: function() {
       var serialized, _this = this;
 
@@ -70,13 +77,18 @@
       this.resourceProperties.forEach(function(key) {
         var _ref;
         if ((_ref = _this.serializers) != null ? _ref[key] : void 0) {
-          return serialized[key] = _this.serializers[key](_this.get(key));
+          serialized[key] = _this.serializers[key](_this.get(key));
         } else {
-          return serialized[key] = _this.get(key);
+          serialized[key] = _this.get(key);
         }
       });
 
-      return serialized;
+      if (this.resourceName) {
+        var s = {}; s[this.resourceName] = serialized;
+        return s;
+      } else {
+        return serialized;
+      }
     },
 
     deserialize: function(json) {
@@ -96,6 +108,8 @@
 
       Ember.endPropertyChanges(this);
 
+      this._updatePersistedProperties();
+
       return this;
     },
 
@@ -110,6 +124,10 @@
         success = options.success;
       }
 
+      if (!options.url) {
+        options.url = this._resourceUrl();
+      }
+
       options.success = function(data, textStatus, jqXHR) {
         _this.deserialize(data);
         _this._updatePersistedProperties();
@@ -120,14 +138,13 @@
         return (typeof success === "function") ? success(data, textStatus, jqXHR) : void 0;
       };
 
-      this.resourceAdapter.request('read', this, options);
+      this.resourceAdapter.request('read', options);
 
       return this;
     },
 
     save: function(options) {
-      var success,
-        _this = this;
+      var success, method, _this = this;
 
       this.set('isSaving', true);
 
@@ -139,6 +156,10 @@
         success = options.success;
       }
 
+      if (!options.url) {
+        options.url = this._resourceUrl();
+      }
+
       options.success = function(data, textStatus, jqXHR) {
         _this.deserialize(data);
         _this._updatePersistedProperties();
@@ -148,9 +169,13 @@
         return typeof success === "function" ? success(data, textStatus, jqXHR) : void 0;
       };
 
-      options.data || (options.data = this.serialize());
+      if (!options.data) {
+        options.data = this.serialize();
+      }
 
-      this.resourceAdapter.request('create', this, options);
+      method = this.get('isNew') ? 'create' : 'update';
+
+      this.resourceAdapter.request(method, options);
 
       return this;
     },
@@ -160,13 +185,13 @@
         options = {};
       }
 
-      this.resourceAdapter.request('delete', this, options);
+      this.resourceAdapter.request('delete', options);
 
       return this;
     },
 
     revert: function(key) {
-      this.set(key, this.persistedProperties(key));
+      this.set(key, this.persistedProperties[key]);
       this.dirtyProperties.removeObject(key);
     },
 
@@ -176,7 +201,7 @@
       Ember.beginPropertyChanges(this);
 
       this.dirtyProperties.forEach(function(key) {
-        _this.revertProperty(key);
+        _this.revert(key);
       });
 
       this.dirtyProperties.clear();
@@ -189,13 +214,23 @@
 
       persisted = {};
 
-      this.get('resourceProperties').forEach(function(prop) {
-        persisted[prop] = _this.get('prop');
+      this.resourceProperties.forEach(function(key) {
+        persisted[key] = _this.get(key);
       });
 
       this.set('persistedProperties', persisted);
 
       this.dirtyProperties.clear();
+    },
+
+    _resourceUrl: function() {
+      var url = this.resourceAdapter.namespace + this.constructor.resourceUrl;
+
+      if (!this.get('isNew')) {
+        url += '/' + this.get('id');
+      }
+
+      return url;
     }
   });
 
@@ -209,23 +244,41 @@
     },
 
     all: function() {
+      var collection;
+
       if (this.resourceCollectionPath) {
-        Ember.get(this.resourceCollectionPath).fetchAll();
-        return Ember.get(this.resourceCollectionPath).get('content');
+        collection = Ember.get(this.resourceCollectionPath);
+
+        if (!collection.get('isFetched')) {
+          collection.fetchAll();
+        }
+
+        return collection.get('content');
       } else {
         throw new Error('You cannot use `all()` without specifying a `resourceCollectionPath` on the Resource\'s prototype!');
       }
     }
   });
 
-  Resourceful.ResourceCollection = Ember.ArrayController.extend({
+  Resourceful.ResourceCollection = Ember.ArrayProxy.extend({
     resourceClass: null,
     resourceAdapter: null,
+
+    isFetching: false,
+    isFetched: false,
+
+    init: function() {
+      this._super();
+
+      if (!this.get('content')) {
+        this.set('content', []);
+      }
+    },
 
     findById: function(id) {
       var resource;
 
-      resource = this.findProperty('id', json.id);
+      resource = this.findProperty('id', id);
 
       if (!resource) {
         resource = this.resourceClass.create({ id: id });
@@ -245,9 +298,7 @@
         options = {};
       }
 
-      resource = this.resourceClass.create({
-        id: id
-      });
+      resource = this.resourceClass.create({ id: id });
 
       resource.fetch(options);
 
@@ -260,6 +311,8 @@
       var success,
         _this = this;
 
+      this.set('isFetching', true);
+
       if (!options) {
         options = {};
       }
@@ -269,12 +322,19 @@
       }
 
       options.success = function(data, textStatus, jqXHR) {
+        _this.content.clear();
         _this.loadAll(data);
+        _this.set('isFetching', false);
+        _this.set('isFetched', true);
 
-        return (typeof success === "function") ? success(data, textStatus, jqXHR) : void 0;
+        if (typeof success === "function") {
+          success(data, textStatus, jqXHR);
+        }
       };
 
-      options.url || (options.url = this.resourceClass.resourceUrl);
+      if (!options.url) {
+        options.url = this._resourceUrl();
+      }
 
       return this.resourceAdapter.request('read', options);
     },
@@ -282,8 +342,8 @@
     loadAll: function(json) {
       var _this = this;
 
-      return json.forEach(function(j) {
-        return _this.load(j);
+      json.forEach(function(j) {
+        _this.load(j);
       });
     },
 
@@ -294,19 +354,23 @@
 
       if (!resource) {
         resource = this.resourceClass.create();
+        this.pushObject(resource);
       }
 
       resource.deserialize(json);
 
-      return resource._updatePersistedProperties();
+      resource._updatePersistedProperties();
+    },
+
+    _resourceUrl: function() {
+      return this.resourceAdapter.namespace + this.resourceClass.resourceUrl;
     }
   });
 
   Resourceful.ResourceAdapter = Ember.Object.extend({
     namespace: '',
-    extension: '',
 
-    request: function(method, resource, options) {
+    request: function(method, options) {
       var crud, success, _this = this;
 
       crud = {
@@ -315,18 +379,6 @@
         'read': 'GET',
         'delete': 'DELETE'
       };
-
-      if ((options != null) && !(options.url != null)) {
-        options.url = this.namespace + '/' + resource.constructor.resourceUrl;
-
-        if (!resource.get('isNew')) {
-          options.url += resource.get('id');
-        }
-
-        options.url += this.extension;
-      } else {
-        options = resource;
-      }
 
       if (options.success) {
         success = options.success;
