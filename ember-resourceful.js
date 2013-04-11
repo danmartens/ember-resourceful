@@ -128,19 +128,14 @@
         options.url = this._resourceUrl();
       }
 
-      options.success = function(data, textStatus, jqXHR) {
-        _this.deserialize(data);
-        _this._updatePersistedProperties();
+      return this.resourceAdapter.request('read', options)
+        .done(function(data, textStatus, jqXHR) {
+          _this.deserialize(data);
+          _this._updatePersistedProperties();
 
-        _this.set('isFetching', false);
-        _this.set('isFetched', false);
-
-        return (typeof success === "function") ? success(data, textStatus, jqXHR) : void 0;
-      };
-
-      this.resourceAdapter.request('read', options);
-
-      return this;
+          _this.set('isFetching', false);
+          _this.set('isFetched', false);
+        });
     },
 
     save: function(options) {
@@ -152,22 +147,9 @@
         options = {};
       }
 
-      if (options.success) {
-        success = options.success;
-      }
-
       if (!options.url) {
         options.url = this._resourceUrl();
       }
-
-      options.success = function(data, textStatus, jqXHR) {
-        _this.deserialize(data);
-        _this._updatePersistedProperties();
-
-        _this.set('isSaving', false);
-
-        return typeof success === "function" ? success(data, textStatus, jqXHR) : void 0;
-      };
 
       if (!options.data) {
         options.data = this.serialize();
@@ -175,9 +157,13 @@
 
       method = this.get('isNew') ? 'create' : 'update';
 
-      this.resourceAdapter.request(method, options);
+      return this.resourceAdapter.request(method, options)
+        .done(function(data, textStatus, jqXHR) {
+          _this.deserialize(data);
+          _this._updatePersistedProperties();
 
-      return this;
+          _this.set('isSaving', false);
+        });
     },
 
     destroy: function(options) {
@@ -185,9 +171,11 @@
         options = {};
       }
 
-      this.resourceAdapter.request('delete', options);
+      if (!options.url) {
+        options.url = this._resourceUrl();
+      }
 
-      return this;
+      return this.resourceAdapter.request('delete', options);
     },
 
     revert: function(key) {
@@ -292,7 +280,7 @@
     },
 
     fetch: function(id, options) {
-      var resource;
+      var resource, _this = this;
 
       if (!options) {
         options = {};
@@ -300,11 +288,10 @@
 
       resource = this.resourceClass.create({ id: id });
 
-      resource.fetch(options);
-
-      this.pushObject(resource);
-
-      return resource;
+      return resource.fetch(options)
+        .done(function() {
+          _this.pushObject(resource);
+        });
     },
 
     fetchAll: function(options) {
@@ -317,26 +304,17 @@
         options = {};
       }
 
-      if (options.success) {
-        success = options.success;
-      }
-
-      options.success = function(data, textStatus, jqXHR) {
-        _this.content.clear();
-        _this.loadAll(data);
-        _this.set('isFetching', false);
-        _this.set('isFetched', true);
-
-        if (typeof success === "function") {
-          success(data, textStatus, jqXHR);
-        }
-      };
-
       if (!options.url) {
         options.url = this._resourceUrl();
       }
 
-      return this.resourceAdapter.request('read', options);
+      return this.resourceAdapter.request('read', options)
+        .done(function(data, textStatus, jqXHR) {
+          _this.content.clear();
+          _this.loadAll(data);
+          _this.set('isFetching', false);
+          _this.set('isFetched', true);
+        });
     },
 
     loadAll: function(json) {
@@ -371,7 +349,7 @@
     namespace: '',
 
     request: function(method, options) {
-      var crud, success, _this = this;
+      var crud, deferred, _this = this;
 
       crud = {
         'create': 'POST',
@@ -380,20 +358,28 @@
         'delete': 'DELETE'
       };
 
-      if (options.success) {
-        success = options.success;
+      deferred = $.Deferred();
 
-        options.success = function(data, textStatus, jqXHR) {
-          return success(_this.prepareResponse(data), textStatus, jqXHR);
-        };
+      if (!options) {
+        options = {};
       }
+
+      options.success = function(data, textStatus, jqXHR) {
+        deferred.resolve(_this.prepareResponse(data), textStatus, jqXHR);
+      };
+
+      options.error = function(jqXHR, textStatus, errorThrown) {
+        deferred.reject(jqXHR, textStatus, errorThrown);
+      };
 
       options = this.prepareRequest(jQuery.extend({
         dataType: 'json',
         type: crud[method]
       }, options));
 
-      return jQuery.ajax(options);
+      $.ajax(options);
+
+      return deferred;
     },
 
     prepareRequest: function(options) {
