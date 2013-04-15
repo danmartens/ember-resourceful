@@ -202,9 +202,11 @@
 
       persisted = {};
 
-      this.resourceProperties.forEach(function(key) {
-        persisted[key] = _this.get(key);
-      });
+      if (this.resourceProperties) {
+        this.resourceProperties.forEach(function(key) {
+          persisted[key] = _this.get(key);
+        });
+      }
 
       this.set('persistedProperties', persisted);
 
