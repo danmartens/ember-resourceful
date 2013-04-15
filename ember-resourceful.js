@@ -134,7 +134,7 @@
           _this._updatePersistedProperties();
 
           _this.set('isFetching', false);
-          _this.set('isFetched', false);
+          _this.set('isFetched', true);
         });
     },
 
