@@ -77,7 +77,7 @@
       this.resourceProperties.forEach(function(key) {
         var _ref;
         if ((_ref = _this.serializers) != null ? _ref[key] : void 0) {
-          serialized[key] = _this.serializers[key](_this.get(key));
+          serialized[key] = _this.serializers[key].call(this, _this.get(key));
         } else {
           serialized[key] = _this.get(key);
         }
@@ -100,7 +100,7 @@
         value = json[key];
 
         if ((_ref = this.deserializers) != null ? _ref[key] : void 0) {
-          value = this.deserializers[key](value);
+          value = this.deserializers[key].call(this, value);
         }
 
         this.set(key, value);
