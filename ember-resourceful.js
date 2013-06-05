@@ -160,6 +160,7 @@
           _this.deserialize(data);
           _this._updatePersistedProperties();
 
+          _this.set('isFetched', true);
           _this.set('isSaving', false);
         });
     },
