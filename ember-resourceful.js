@@ -378,7 +378,11 @@
         type: crud[method]
       }, options));
 
-      $.ajax(options);
+      jqXHR = $.ajax(options);
+
+      ['abort'].forEach(function(method) {
+        deferred[method] = jqXHR[method];
+      });
 
       return deferred;
     },
