@@ -197,19 +197,19 @@
     },
 
     _updatePersistedProperties: function() {
-      var persisted, _this = this;
+      if (Array.isArray(this.resourceProperties)) {
+        var persisted, _this = this;
 
-      persisted = {};
+        persisted = {};
 
-      if (this.resourceProperties) {
         this.resourceProperties.forEach(function(key) {
           persisted[key] = _this.get(key);
         });
+
+        this.set('persistedProperties', persisted);
+
+        this.dirtyProperties.clear();
       }
-
-      this.set('persistedProperties', persisted);
-
-      this.dirtyProperties.clear();
     },
 
     _resourceUrl: function() {
