@@ -114,14 +114,12 @@
     },
 
     fetch: function(options) {
-      var success, _this = this;
+      var _this = this;
 
       this.set('isFetching', true);
 
       if (!options) {
         options = {};
-      } else if (options.success) {
-        success = options.success;
       }
 
       if (!options.url) {
