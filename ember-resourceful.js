@@ -106,6 +106,8 @@
         this.set(key, value);
       }
 
+      this.set('isFetched', true);
+
       Ember.endPropertyChanges(this);
 
       this._updatePersistedProperties();
