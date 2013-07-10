@@ -1,0 +1,3 @@
+describe('Resourceful.Resource', function() {
+  
+});
