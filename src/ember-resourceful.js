@@ -190,9 +190,9 @@
       var _this = this;
 
       Ember.beginPropertyChanges(this);
-
+      
       this.dirtyProperties.forEach(function(key) {
-        _this.revert(key);
+        _this.set(key, _this.persistedProperties[key]);
       });
 
       this.dirtyProperties.clear();

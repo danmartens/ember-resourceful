@@ -88,4 +88,29 @@ describe('Resourceful.Resource', function() {
       expect(person.get('isDirty')).to.be(false);
     });
   });
+  
+  describe('#revert()', function() {    
+    it('will revert a changed property', function() {
+      var person = Person.create().deserialize({ firstName: 'John' });
+      
+      person.set('firstName', 'Jane');
+      person.revert('firstName');
+      
+      expect(person.firstName).to.be('John');
+    });
+  });
+  
+  describe('#revertAll()', function() {    
+    it('will revert all changed properties', function() {
+      var person = Person.create().deserialize({ firstName: 'Jane', lastName: 'Doe' });
+      
+      person.set('firstName', 'John');
+      person.set('lastName', 'Smith');
+      
+      person.revertAll();
+      
+      expect(person.firstName).to.be('Jane');
+      expect(person.lastName).to.be('Doe');
+    });
+  });
 });
