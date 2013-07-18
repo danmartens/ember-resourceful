@@ -255,17 +255,44 @@
     isFetched: false,
 
     init: function() {
+      var _this = this;
+      
       this._super();
-
+      
+      this._resourceIndex = {};
+      
       if (!this.get('content')) {
         this.set('content', []);
       }
+      
+      this.addArrayObserver(Ember.Object.create({
+        arrayWillChange: function(observedObj, start, removeCount, addCount) {
+          var removed;
+        
+          if (removeCount > 0) {
+            observedObj.slice(start, start + removeCount).forEach(function(resource) {
+              if (_this._resourceIndex[resource.id]) {
+                delete _this._resourceIndex[resource.id];
+              }
+            });
+          }
+        },
+        arrayDidChange: function(observedObj, start, removeCount, addCount) {
+          var added, filtered;
+        
+          if (addCount > 0) {
+            observedObj.slice(start, start + addCount).forEach(function(resource) {
+              _this._resourceIndex[resource.id] = resource;
+            });
+          }
+        }
+      }));
     },
 
     findById: function(id) {
       var resource;
 
-      resource = this.findProperty('id', id);
+      resource = this._resourceIndex[id];
 
       if (!resource) {
         resource = this.resourceClass.create({ id: id });
@@ -327,7 +354,7 @@
     load: function(json) {
       var resource;
 
-      resource = this.findProperty('id', json.id);
+      resource = this._resourceIndex[id];
 
       if (!resource) {
         resource = this.resourceClass.create();
@@ -338,7 +365,7 @@
 
       resource._updatePersistedProperties();
     },
-
+    
     _resourceUrl: function() {
       return this.resourceAdapter.namespace + this.resourceClass.resourceUrl;
     }
