@@ -2,7 +2,7 @@ Resourceful.ResourceAdapter = Ember.Object.extend({
   namespace: '',
 
   request: function(method, options) {
-    var crud, deferred, _this = this;
+    var crud, deferred, jqXHR, _this = this;
 
     crud = {
       'create': 'POST',
