@@ -67,6 +67,17 @@ describe('Resourceful.Resource', function() {
     });
   });
   
+  describe('#isNew', function() {
+    it('is false if #id is defined', function() {
+      person.set('id', 1);
+      expect(person.get('isNew')).to.be(false);
+    });
+    
+    it('is true if #id is null or undefined', function() {
+      expect(person.get('isNew')).to.be(true);
+    });
+  });
+  
   describe('#isDirty', function() {
     it('is true if a property has been changed', function() {
       person.deserialize({ firstName: 'John' });

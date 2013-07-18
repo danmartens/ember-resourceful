@@ -63,13 +63,9 @@
       }
     },
 
-    isNew: function() {
-      return this.get('id') === undefined;
-    }.property('id'),
-
-    isDirty: function() {
-      return this.get('dirtyProperties.length') !== 0;
-    }.property('dirtyProperties.length'),
+    isNew: Ember.computed.equal('id', undefined),
+    
+    isDirty: Ember.computed.bool('dirtyProperties.length'),
 
     serialize: function() {
       var serialized, _this = this;
