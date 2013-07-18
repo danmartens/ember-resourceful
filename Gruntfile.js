@@ -4,7 +4,7 @@ module.exports = function(grunt) {
     
     concat: {
       options: {
-        banner: '(function() {\n\n',
+        banner: '/* Ember Resourceful v<%= pkg.version %> */\n\n(function() {\n\n',
         footer: '\n}).call(this);'
       },
       dist: {
@@ -14,7 +14,7 @@ module.exports = function(grunt) {
           'src/resourceful.resource_collection.js',
           'src/resourceful.resource_adapter.js'
         ],
-        dest: 'dist/ember-resourceful.js'
+        dest: 'dist/ember-resourceful-<%= pkg.version %>.js'
       }
     },
     
