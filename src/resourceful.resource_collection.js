@@ -88,6 +88,7 @@ Resourceful.ResourceCollection = Ember.ArrayProxy.extend({
     return this.resourceAdapter.request('read', options)
       .done(function(data, textStatus, jqXHR) {
         _this.content.clear();
+        _this._resourceIndex = {};
         _this.loadAll(data);
         _this.set('isFetching', false);
         _this.set('isFetched', true);
