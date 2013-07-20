@@ -33,7 +33,7 @@ Resourceful.Resource = Ember.Object.extend({
   },
 
   isNew: Ember.computed.equal('id', undefined),
-  
+
   isDirty: Ember.computed.bool('dirtyProperties.length'),
 
   serialize: function() {
@@ -153,7 +153,7 @@ Resourceful.Resource = Ember.Object.extend({
     var _this = this;
 
     Ember.beginPropertyChanges(this);
-    
+
     this.dirtyProperties.forEach(function(key) {
       _this.set(key, _this.persistedProperties[key]);
     });

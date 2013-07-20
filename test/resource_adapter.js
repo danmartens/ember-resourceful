@@ -1,13 +1,13 @@
 describe('Resourceful.ResourceAdapter', function() {
   describe('#buildURI()', function() {
     var adapter;
-    
+
     beforeEach(function() {
       adapter = Resourceful.ResourceAdapter.create({
         namespace: '/api/1'
       });
     });
-    
+
     it('can build a URI from multiple parts', function() {
       expect(adapter.buildURI('resource')).to.be('/api/1/resource');
       expect(adapter.buildURI('resource', 4, 'edit')).to.be('/api/1/resource/4/edit');

@@ -1,7 +1,7 @@
 module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    
+
     concat: {
       options: {
         banner: '/* Ember Resourceful v<%= pkg.version %> */\n\n(function() {\n\n',
@@ -17,7 +17,7 @@ module.exports = function(grunt) {
         dest: 'dist/ember-resourceful-<%= pkg.version %>.js'
       }
     },
-    
+
     shell: {
       mochaPhantom: {
         command: 'clear && mocha-phantomjs -R dot test/runner.html',
@@ -34,11 +34,11 @@ module.exports = function(grunt) {
       }
     }
   });
-  
+
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-contrib-watch');
-  
+
   grunt.registerTask('default', ['concat']);
   grunt.registerTask('test', ['shell:mochaPhantom']);
 };

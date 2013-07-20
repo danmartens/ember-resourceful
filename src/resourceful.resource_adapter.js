@@ -38,14 +38,14 @@ Resourceful.ResourceAdapter = Ember.Object.extend({
 
     return deferred;
   },
-  
+
   buildURI: function(parts) {
     if (arguments.length > 1) {
       parts = slice.call(arguments, 0)
     } else if (typeof parts === 'string') {
       parts = [parts];
     }
-    
+
     return encodeURI((this.namespace + '/' + parts.join('/')).replace(/\/+/g, '/'));
   },
 
