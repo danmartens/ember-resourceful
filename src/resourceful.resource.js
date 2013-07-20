@@ -82,7 +82,7 @@ Resourceful.Resource = Ember.Object.extend({
     return this;
   },
 
-  fetch: function(options) {
+  fetchResource: function(options) {
     var _this = this;
 
     this.set('isFetching', true);
@@ -99,12 +99,13 @@ Resourceful.Resource = Ember.Object.extend({
       .done(function(data, textStatus, jqXHR) {
         _this.deserialize(data);
         _this._updatePersistedProperties();
-
+      })
+      .always(function() {
         _this.set('isFetching', false);
       });
   },
 
-  save: function(options) {
+  saveResource: function(options) {
     var success, method, _this = this;
 
     this.set('isSaving', true);
@@ -132,7 +133,7 @@ Resourceful.Resource = Ember.Object.extend({
       });
   },
 
-  destroy: function(options) {
+  deleteResource: function(options) {
     if (!options) {
       options = {};
     }
