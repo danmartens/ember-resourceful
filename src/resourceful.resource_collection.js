@@ -87,8 +87,6 @@ Resourceful.ResourceCollection = Ember.ArrayProxy.extend({
 
     return this.resourceAdapter.request('read', options)
       .done(function(data, textStatus, jqXHR) {
-        _this.content.clear();
-        _this._resourceIndex = {};
         _this.loadAll(data);
         _this.set('isFetching', false);
         _this.set('isFetched', true);
@@ -110,12 +108,13 @@ Resourceful.ResourceCollection = Ember.ArrayProxy.extend({
 
     if (!resource) {
       resource = this.resourceClass.create();
-      this.pushObject(resource);
     }
 
     resource.deserialize(json);
 
-    resource._updatePersistedProperties();
+    if (!this.contains(resource)) {
+      this.pushObject(resource);
+    }
   },
 
   _resourceUrl: function() {
