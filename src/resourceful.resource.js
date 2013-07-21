@@ -8,6 +8,9 @@ Resourceful.Resource = Ember.Object.extend({
   isFetching: false,
   isFetched: false,
   isSaving: false,
+  isDeleting: false,
+  isDeleted: false,
+
 
   init: function() {
     var _this = this;
@@ -134,6 +137,10 @@ Resourceful.Resource = Ember.Object.extend({
   },
 
   deleteResource: function(options) {
+    var _this = this;
+
+    this.set('isDeleting', true);
+
     if (!options) {
       options = {};
     }
@@ -142,7 +149,13 @@ Resourceful.Resource = Ember.Object.extend({
       options.url = this._resourceUrl();
     }
 
-    return this.resourceAdapter.request('delete', options);
+    return this.resourceAdapter.request('delete', options)
+      .done(function() {
+        _this.set('isDeleted', true);
+      })
+      .always(function() {
+        _this.set('isDeleting', false);
+      });
   },
 
   revert: function(key) {

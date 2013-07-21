@@ -124,4 +124,58 @@ describe('Resourceful.Resource', function() {
       expect(person.lastName).to.be('Doe');
     });
   });
+
+  describe('AJAX functionality', function() {
+    var adapter, xhr, requests, respond;
+
+    respond = function(request, status, response) {
+      if (typeof status !== 'number') {
+        response = status;
+        status = 200;
+      }
+
+      request.respond(status, {
+        "Content-Type": "application/json"
+      }, JSON.stringify(response));
+    };
+
+    before(function() {
+      adapter = Resourceful.ResourceAdapter.create();
+      xhr = sinon.useFakeXMLHttpRequest();
+
+      xhr.onCreate = function(request) {
+        requests.push(request);
+      };
+
+      Person.reopen({ resourceAdapter: adapter });
+    });
+
+    beforeEach(function() {
+      requests = [];
+    });
+
+    after(function() {
+      xhr.restore();
+    });
+
+    describe('#deleteResource()', function() {
+      it('sets `isDeleting` to true and then back to false', function() {
+        person.deleteResource();
+
+        expect(person.isDeleting).to.be(true);
+
+        respond(requests[0], {});
+
+        expect(person.isDeleting).to.be(false);
+      });
+
+      it('sets `isDeleted` to true if it\'s successful', function() {
+        person.deleteResource();
+
+        respond(requests[0], {});
+
+        expect(person.isDeleted).to.be(true);
+      });
+    });
+  });
 });
