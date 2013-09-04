@@ -8,13 +8,13 @@ Resourceful.ResourceCollection = Ember.ArrayProxy.extend({
   init: function() {
     var _this = this;
 
+    if (!this.get('content')) {
+      this.set('content', Ember.A());
+    }
+
     this._super();
 
     this._resourceIndex = {};
-
-    if (!this.get('content')) {
-      this.set('content', []);
-    }
 
     this.addArrayObserver(Ember.Object.create({
       arrayWillChange: function(observedObj, start, removeCount, addCount) {
