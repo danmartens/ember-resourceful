@@ -99,11 +99,11 @@ Resourceful.Resource = Ember.Object.extend({
     }
 
     return this.resourceAdapter.request('read', options)
-      .done(function(data, textStatus, jqXHR) {
+      .then(function(data, textStatus, jqXHR) {
         _this.deserialize(data);
         _this._updatePersistedProperties();
-      })
-      .always(function() {
+        _this.set('isFetching', false);
+      }, function() {
         _this.set('isFetching', false);
       });
   },
@@ -128,7 +128,7 @@ Resourceful.Resource = Ember.Object.extend({
     method = this.get('isNew') ? 'create' : 'update';
 
     return this.resourceAdapter.request(method, options)
-      .done(function(data, textStatus, jqXHR) {
+      .then(function(data, textStatus, jqXHR) {
         _this.deserialize(data);
         _this._updatePersistedProperties();
 
@@ -150,10 +150,10 @@ Resourceful.Resource = Ember.Object.extend({
     }
 
     return this.resourceAdapter.request('delete', options)
-      .done(function() {
+      .then(function() {
+        _this.set('isDeleting', false);
         _this.set('isDeleted', true);
-      })
-      .always(function() {
+      }, function() {
         _this.set('isDeleting', false);
       });
   },

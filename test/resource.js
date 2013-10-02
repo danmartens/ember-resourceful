@@ -159,22 +159,29 @@ describe('Resourceful.Resource', function() {
     });
 
     describe('#deleteResource()', function() {
-      it('sets `isDeleting` to true and then back to false', function() {
-        person.deleteResource();
+      it('sets `isDeleting` to true and then back to false', function(done) {
+        var promise = person.deleteResource();
 
         expect(person.isDeleting).to.be(true);
 
-        respond(requests[0], {});
+        promise.then(function() {
+          expect(person.isDeleting).to.be(false);
+        }, function() {
+          expect().fail();
+        }).then(done, done);
 
-        expect(person.isDeleting).to.be(false);
+        respond(requests[0], {});
       });
 
-      it('sets `isDeleted` to true if it\'s successful', function() {
-        person.deleteResource();
+      it('sets `isDeleted` to true if it\'s successful', function(done) {
+        person.deleteResource()
+          .then(function() {
+            expect(person.isDeleted).to.be(true);
+          }, function() {
+            expect().fail();
+          }).then(done, done);
 
         respond(requests[0], {});
-
-        expect(person.isDeleted).to.be(true);
       });
     });
   });

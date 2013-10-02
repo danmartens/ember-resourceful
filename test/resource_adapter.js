@@ -15,4 +15,47 @@ describe('Resourceful.ResourceAdapter', function() {
       expect(adapter.buildURI(['from', 'an', 'array'])).to.be('/api/1/from/an/array');
     });
   });
+
+  describe('#request()', function() {
+    var adapter, server;
+
+    beforeEach(function() {
+      server = sinon.fakeServer.create();
+      adapter = Resourceful.ResourceAdapter.create();
+    });
+
+    afterEach(function() {
+      server.restore();
+    });
+
+    it('resolves the returned promise if the request is succesful', function(done) {
+      server.respondWith('GET', '/test.json',
+        [200, { 'Content-Type': 'application/json' }, '{}']);
+
+      var promise = adapter.request('read', { url: '/test.json' });
+
+      server.respond();
+
+      promise.then(function() {
+        expect(true).ok();
+      }, function() {
+        expect().fail();
+      }).then(done, done);
+    });
+
+    it('rejects the returned promise if the request is unsuccesful', function(done) {
+      server.respondWith('GET', '/test.json',
+        [500, { 'Content-Type': 'application/json' }, '{}']);
+
+      var promise = adapter.request('read', { url: '/test.json' });
+
+      server.respond();
+
+      promise.then(function() {
+        expect().fail();
+      }, function() {
+        expect(true).ok();
+      }).then(done, done);
+    });
+  });
 });

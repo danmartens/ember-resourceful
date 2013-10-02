@@ -66,7 +66,7 @@ Resourceful.ResourceCollection = Ember.ArrayProxy.extend({
     resource = this.resourceClass.create({ id: id });
 
     return resource.fetchResource(options)
-      .done(function() {
+      .then(function() {
         _this.pushObject(resource);
       });
   },
@@ -85,7 +85,7 @@ Resourceful.ResourceCollection = Ember.ArrayProxy.extend({
     }
 
     return this.resourceAdapter.request('read', options)
-      .done(function(data, textStatus, jqXHR) {
+      .then(function(data, textStatus, jqXHR) {
         _this.loadAll(data);
         _this.set('isFetching', false);
         _this.set('isFetched', true);

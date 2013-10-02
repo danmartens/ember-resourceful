@@ -2,7 +2,7 @@ Resourceful.ResourceAdapter = Ember.Object.extend({
   namespace: '',
 
   request: function(method, options) {
-    var crud, deferred, jqXHR, _this = this;
+    var crud, promise, jqXHR, _this = this;
 
     crud = {
       'create': 'POST',
@@ -11,37 +11,37 @@ Resourceful.ResourceAdapter = Ember.Object.extend({
       'delete': 'DELETE'
     };
 
-    deferred = $.Deferred();
-
     if (!options) {
       options = {};
     }
-
-    options.success = function(data, textStatus, jqXHR) {
-      deferred.resolve(_this.prepareResponse(data), textStatus, jqXHR);
-    };
-
-    options.error = function(jqXHR, textStatus, errorThrown) {
-      deferred.reject(jqXHR, textStatus, errorThrown);
-    };
 
     options = this.prepareRequest(jQuery.extend({
       dataType: 'json',
       type: crud[method]
     }, options));
 
-    jqXHR = $.ajax(options);
+    promise = new Ember.RSVP.Promise(function(resolve, reject) {
+      var done = function(data) {
+        resolve(_this.prepareResponse(data));
+      };
 
-    ['abort'].forEach(function(method) {
-      deferred[method] = jqXHR[method];
+      var fail = function(jqXHR, textStatus, errorThrown) {
+        reject(errorThrown);
+      };
+
+      jqXHR = $.ajax(options).done(done).fail(fail);
     });
 
-    return deferred;
+    promise.xhr = {
+      abort: jqXHR.abort
+    };
+
+    return promise;
   },
 
   buildURI: function(parts) {
     if (arguments.length > 1) {
-      parts = slice.call(arguments, 0)
+      parts = slice.call(arguments, 0);
     } else if (typeof parts === 'string') {
       parts = [parts];
     }
