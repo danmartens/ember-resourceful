@@ -1,30 +1,33 @@
 describe('Resourceful.HasManyArray', function() {
-  var App, post, comment, GLOBAL = {};
+  var post, comment, GLOBAL = {};
 
-  Ember.lookup = GLOBAL;
-  App = GLOBAL.App = Ember.Application.create();
+  before(function() {
+    Ember.lookup = GLOBAL;
 
-  App.setupForTesting();
+    GLOBAL.Comment = Resourceful.Resource.extend();
 
-  App.Comment = Resourceful.Resource.extend();
+    GLOBAL.Comment.reopenClass({
+      resourceCollectionPath: 'comments'
+    });
 
-  App.Comment.reopenClass({
-    resourceCollectionPath: 'App.comments'
+    GLOBAL.Post = Resourceful.Resource.extend({
+      comments: Resourceful.hasMany('Comment', { key: 'post_id' })
+    });
   });
 
-  App.Post = Resourceful.Resource.extend({
-    comments: Resourceful.hasMany('App.Comment', { key: 'post_id' })
+  after(function() {
+    Ember.lookup = window;
   });
 
   beforeEach(function() {
-    App.comments = Resourceful.ResourceCollection.create({
-      resourceClass: App.Comment
+    GLOBAL.comments = Resourceful.ResourceCollection.create({
+      resourceClass: GLOBAL.Comment
     });
 
-    post = App.Post.create({ id: 1 });
-    comment = App.Comment.create({ id: 1, post_id: 1 });
+    post = GLOBAL.Post.create({ id: 1 });
+    comment = GLOBAL.Comment.create({ id: 1, post_id: 1 });
 
-    App.comments.pushObject(comment);
+    GLOBAL.comments.pushObject(comment);
   });
 
   it('intializes with related resources', function() {
@@ -32,12 +35,19 @@ describe('Resourceful.HasManyArray', function() {
   });
 
   it('adds new resources if related', function() {
-    App.comments.pushObject(App.Comment.create({ id: 2, post_id: 1 }));
+    GLOBAL.comments.pushObject(GLOBAL.Comment.create({ id: 2, post_id: 1 }));
     expect(post.get('comments.content.length')).to.be(2);
   });
 
   it('removes changed resources if no longer related', function() {
+    expect(post.get('comments.length')).to.be(1);
     comment.set('post_id', 2);
-    expect(post.get('comments.content.length')).to.be(0);
+    expect(post.get('comments.length')).to.be(0);
+  });
+
+  it('updates the content if the primary key changes', function() {
+    expect(post.get('comments.length')).to.be(1);
+    post.set('id', 2);
+    expect(post.get('comments.length')).to.be(0);
   });
 });

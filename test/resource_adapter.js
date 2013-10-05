@@ -17,45 +17,60 @@ describe('Resourceful.ResourceAdapter', function() {
   });
 
   describe('#request()', function() {
-    var adapter, server;
+    var adapter, xhr, requests, respond;
 
-    beforeEach(function() {
-      server = sinon.fakeServer.create();
+    respond = function(request, status, response) {
+      if (typeof status !== 'number') {
+        response = status;
+        status = 200;
+      }
+
+      Ember.run(function() {
+        request.respond(status, {
+          "Content-Type": "application/json"
+        }, JSON.stringify(response));
+      });
+    };
+
+    before(function() {
       adapter = Resourceful.ResourceAdapter.create();
+      xhr = sinon.useFakeXMLHttpRequest();
+
+      xhr.onCreate = function(request) {
+        requests.push(request);
+      };
     });
 
-    afterEach(function() {
-      server.restore();
+    beforeEach(function() {
+      requests = [];
+    });
+
+    after(function() {
+      xhr.restore();
     });
 
     it('resolves the returned promise if the request is succesful', function(done) {
-      server.respondWith('GET', '/test.json',
-        [200, { 'Content-Type': 'application/json' }, '{}']);
-
       var promise = adapter.request('read', { url: '/test.json' });
 
-      server.respond();
-
       promise.then(function() {
-        expect(true).ok();
+        expect(true).ok(); done();
       }, function() {
-        expect().fail();
-      }).then(done, done);
+        expect().fail(); done();
+      });
+
+      respond(requests[0], {});
     });
 
     it('rejects the returned promise if the request is unsuccesful', function(done) {
-      server.respondWith('GET', '/test.json',
-        [500, { 'Content-Type': 'application/json' }, '{}']);
-
       var promise = adapter.request('read', { url: '/test.json' });
 
-      server.respond();
-
       promise.then(function() {
-        expect().fail();
+        expect().fail(); done();
       }, function() {
-        expect(true).ok();
-      }).then(done, done);
+        expect(true).ok(); done();
+      });
+
+      respond(requests[0], 500, {});
     });
   });
 });

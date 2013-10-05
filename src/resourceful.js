@@ -17,3 +17,19 @@ Resourceful.hasMany = function(foreignResourceClass, options) {
     });
   });
 };
+
+Resourceful.belongsTo = function(primaryResourceClass, options) {
+  return Ember.computed(function(){
+    var resourceCollection;
+
+    if (Ember.typeOf(primaryResourceClass) === 'string') {
+      primaryResourceClass = Ember.get(primaryResourceClass);
+    }
+
+    return Resourceful.BelongsToObject.create({
+      foreignResource: this,
+      primaryResourceClass: primaryResourceClass,
+      foreignKey: options.key
+    });
+  });
+};

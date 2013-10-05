@@ -134,9 +134,11 @@ describe('Resourceful.Resource', function() {
         status = 200;
       }
 
-      request.respond(status, {
-        "Content-Type": "application/json"
-      }, JSON.stringify(response));
+      Ember.run(function() {
+        request.respond(status, {
+          "Content-Type": "application/json"
+        }, JSON.stringify(response));
+      });
     };
 
     before(function() {
