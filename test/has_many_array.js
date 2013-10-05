@@ -1,5 +1,5 @@
 describe('Resourceful.HasManyArray', function() {
-  var App, GLOBAL = {};
+  var App, post, comment, GLOBAL = {};
 
   Ember.lookup = GLOBAL;
   App = GLOBAL.App = Ember.Application.create();
@@ -20,30 +20,24 @@ describe('Resourceful.HasManyArray', function() {
     App.comments = Resourceful.ResourceCollection.create({
       resourceClass: App.Comment
     });
+
+    post = App.Post.create({ id: 1 });
+    comment = App.Comment.create({ id: 1, post_id: 1 });
+
+    App.comments.pushObject(comment);
   });
 
-  describe('Associations', function() {
-    var post, comment;
+  it('intializes with related resources', function() {
+    expect(post.get('comments.content.length')).to.be(1);
+  });
 
-    beforeEach(function() {
-      post = App.Post.create({ id: 1 });
-      comment = App.Comment.create({ id: 1, post_id: 1 });
+  it('adds new resources if related', function() {
+    App.comments.pushObject(App.Comment.create({ id: 2, post_id: 1 }));
+    expect(post.get('comments.content.length')).to.be(2);
+  });
 
-      App.comments.pushObject(comment);
-    });
-
-    it('intializes with related resources', function() {
-      expect(post.get('comments.content.length')).to.be(1);
-    });
-
-    it('adds new resources if related', function() {
-      App.comments.pushObject(App.Comment.create({ id: 2, post_id: 1 }));
-      expect(post.get('comments.content.length')).to.be(2);
-    });
-
-    it('removes changed resources if no longer related', function() {
-      comment.set('post_id', 2);
-      expect(post.get('comments.content.length')).to.be(0);
-    });
+  it('removes changed resources if no longer related', function() {
+    comment.set('post_id', 2);
+    expect(post.get('comments.content.length')).to.be(0);
   });
 });

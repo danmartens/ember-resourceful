@@ -1,20 +1,24 @@
 Resourceful.HasManyArray = Ember.ArrayProxy.extend({
-  resource: null,
-  resourceCollection: null,
+  primaryResource: null,
+  foreignResourceClass: null,
+  primaryKey: 'id',
   foreignKey: null,
 
   init: function() {
     this.set('content', Ember.A());
-    this.addObserver('resourceCollection.@each.' + this.get('foreignKey'), this._updateArrayContent);
     this._super();
+
+    this.set('foreignResourceArray', Ember.get(this.get('foreignResourceClass').resourceCollectionPath));
+    this.addObserver('foreignResourceArray.@each.' + this.get('foreignKey'), this._updateArrayContent);
+
     this._updateArrayContent();
   },
 
   _updateArrayContent: function() {
     var _this = this;
 
-    this.get('resourceCollection').forEach(function(resource) {
-      if (resource.get(_this.get('foreignKey')) === _this.get('resource.id')) {
+    this.get('foreignResourceArray').forEach(function(resource) {
+      if (resource.get(_this.get('foreignKey')) === _this._primaryKeyValue()) {
         if (!_this.contains(resource)) {
           _this.pushObject(resource);
         }
@@ -22,5 +26,9 @@ Resourceful.HasManyArray = Ember.ArrayProxy.extend({
         _this.removeObject(resource);
       }
     });
+  },
+
+  _primaryKeyValue: function() {
+    return this.get('primaryResource.' + this.get('primaryKey'));
   }
 });

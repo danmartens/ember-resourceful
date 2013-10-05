@@ -2,19 +2,17 @@ var slice = Array.prototype.slice;
 
 window.Resourceful = {};
 
-Resourceful.hasMany = function(resourceClass, options) {
+Resourceful.hasMany = function(foreignResourceClass, options) {
   return Ember.computed(function(){
     var resourceCollection;
 
-    if (Ember.typeOf(resourceClass) === 'string') {
-      resourceClass = Ember.get(resourceClass);
+    if (Ember.typeOf(foreignResourceClass) === 'string') {
+      foreignResourceClass = Ember.get(foreignResourceClass);
     }
 
-    resourceCollection = Ember.get(resourceClass.resourceCollectionPath);
-
     return Resourceful.HasManyArray.create({
-      resource: this,
-      resourceCollection: resourceCollection,
+      primaryResource: this,
+      foreignResourceClass: foreignResourceClass,
       foreignKey: options.key
     });
   });
