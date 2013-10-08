@@ -39,4 +39,9 @@ describe('Resourceful.BelongsToObject', function() {
     comment.set('post_id', 2);
     expect(comment.get('post.content')).to.be(post2);
   });
+
+  it('updates if the primary key changes', function() {
+    post1.set('id', 3);
+    expect(comment.get('post.content')).to.be(undefined);
+  });
 });
