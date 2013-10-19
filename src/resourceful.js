@@ -13,7 +13,8 @@ Resourceful.hasMany = function(foreignResourceClass, options) {
     return Resourceful.HasManyArray.create({
       primaryResource: this,
       foreignResourceClass: foreignResourceClass,
-      foreignKey: options.key
+      foreignKey: options.key,
+      nested: options.nested
     });
   });
 };

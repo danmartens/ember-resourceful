@@ -1,7 +1,6 @@
 Resourceful.Resource = Ember.Object.extend({
   resourceAdapter: null,
   resourceProperties: null,
-  resourceUrl: null,
   serializers: null,
   deserializers: null,
 
@@ -62,18 +61,23 @@ Resourceful.Resource = Ember.Object.extend({
   },
 
   deserialize: function(json) {
-    var key, value, _ref;
+    var key, value, collection;
 
     Ember.beginPropertyChanges(this);
 
     for (key in json) {
       value = json[key];
 
-      if ((_ref = this.deserializers) != null ? _ref[key] : void 0) {
-        value = this.deserializers[key].call(this, value);
-      }
+      if (this.get(key + '.nested')) {
+        collection = Ember.get(this.get(key + '.foreignResourceClass').resourceCollectionPath);
+        collection.loadAll(value);
+      } else {
+        if (this.deserializers && Ember.typeOf(this.deserializers[key]) === 'function') {
+          value = this.deserializers[key].call(this, value);
+        }
 
-      this.set(key, value);
+        this.set(key, value);
+      }
     }
 
     this.set('isFetched', true);

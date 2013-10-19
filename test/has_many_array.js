@@ -11,7 +11,7 @@ describe('Resourceful.HasManyArray', function() {
     });
 
     GLOBAL.Post = Resourceful.Resource.extend({
-      comments: Resourceful.hasMany('Comment', { key: 'post_id' })
+      comments: Resourceful.hasMany('Comment', { key: 'post_id', nested: true })
     });
   });
 
@@ -49,5 +49,19 @@ describe('Resourceful.HasManyArray', function() {
     expect(post.get('comments.length')).to.be(1);
     post.set('id', 2);
     expect(post.get('comments.length')).to.be(0);
+  });
+
+  it('deserializes nested resources', function() {
+    post.deserialize({
+      title: 'A Test Post',
+      comments: [
+        {
+          id: 2,
+          body: 'This is a nested comment.'
+        }
+      ]
+    });
+
+    expect(GLOBAL.comments.findProperty('id', 2).get('body')).to.be('This is a nested comment.');
   });
 });
