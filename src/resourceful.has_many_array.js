@@ -15,6 +15,11 @@ Resourceful.HasManyArray = Ember.ArrayProxy.extend({
     this._updateContent();
   },
 
+  // FIXME: this shouldn't be neccessary
+  removeObject: function() {
+    return this.content.removeObject.apply(this.content, arguments);
+  },
+
   _updateContent: function() {
     var _this = this;
 
