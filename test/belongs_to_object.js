@@ -26,7 +26,7 @@ describe('Resourceful.BelongsToObject', function() {
 
     post1 = GLOBAL.Post.create({ id: 1 });
     post2 = GLOBAL.Post.create({ id: 2 });
-    comment = GLOBAL.Comment.create({ id: 1, post_id: 1 });
+    comment = GLOBAL.Comment.create({ id: 4, post_id: 1 });
 
     GLOBAL.posts.pushObjects([post1, post2]);
   });
