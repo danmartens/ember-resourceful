@@ -40,15 +40,15 @@ describe('Resourceful.HasManyArray', function() {
   });
 
   it('removes changed resources if no longer related', function() {
-    expect(post.get('comments.length')).to.be(1);
+    expect(post.get('comments.content.length')).to.be(1);
     comment.set('post_id', 2);
-    expect(post.get('comments.length')).to.be(0);
+    expect(post.get('comments.content.length')).to.be(0);
   });
 
   it('updates the content if the primary key changes', function() {
-    expect(post.get('comments.length')).to.be(1);
+    expect(post.get('comments.content.length')).to.be(1);
     post.set('id', 2);
-    expect(post.get('comments.length')).to.be(0);
+    expect(post.get('comments.content.length')).to.be(0);
   });
 
   it('deserializes nested resources', function() {
