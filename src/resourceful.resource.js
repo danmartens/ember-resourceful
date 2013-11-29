@@ -1,8 +1,5 @@
 Resourceful.Resource = Ember.Object.extend({
   resourceAdapter: null,
-  resourceProperties: null,
-  serializers: null,
-  deserializers: null,
 
   isFetching: false,
   isFetched: false,
@@ -10,46 +7,29 @@ Resourceful.Resource = Ember.Object.extend({
   isDeleting: false,
   isDeleted: false,
 
+  isNew: Ember.computed.equal('id', undefined),
+  isDirty: Ember.computed.bool('_dirtyAttributes.length'),
 
   init: function() {
-    var _this = this;
-
-    this.persistedProperties = {};
-    this.dirtyProperties = [];
-
+    if (!this._data) { this.setupData(); }
     this._super();
-
-    if (this.resourceProperties) {
-      this.resourceProperties.forEach(function(key) {
-        _this.addObserver(key, function() {
-          if (_this.get(key) !== _this.persistedProperties[key]) {
-            if (!_this.dirtyProperties.contains(key)) {
-              _this.dirtyProperties.pushObject(key);
-            }
-          } else {
-            _this.dirtyProperties.removeObject(key);
-          }
-        });
-      });
-    }
   },
 
-  isNew: Ember.computed.equal('id', undefined),
-
-  isDirty: Ember.computed.bool('dirtyProperties.length'),
+  setupData: function() {
+    this.setProperties({
+      _data: {},
+      _persistedData: {},
+      _dirtyAttributes: []
+    });
+  },
 
   serialize: function() {
-    var serialized, _this = this;
+    var serialized = {},
+        data = this.get('_data'),
+        _this = this;
 
-    serialized = {};
-
-    this.resourceProperties.forEach(function(key) {
-      var _ref;
-      if ((_ref = _this.serializers) != null ? _ref[key] : void 0) {
-        serialized[key] = _this.serializers[key].call(this, _this.get(key));
-      } else {
-        serialized[key] = _this.get(key);
-      }
+    Ember.keys(data).forEach(function(key) {
+      serialized[key] = _this._serializeAttr(key, data[key]);
     });
 
     if (this.resourceName) {
@@ -61,30 +41,24 @@ Resourceful.Resource = Ember.Object.extend({
   },
 
   deserialize: function(json) {
-    var key, value, collection;
+    var _this = this;
 
     Ember.beginPropertyChanges(this);
 
-    for (key in json) {
-      value = json[key];
+    Ember.keys(json).forEach(function(key) {
+      var value = json[key];
 
-      if (this.get(key + '.nested')) {
-        collection = Ember.get(this.get(key + '.foreignResourceClass').resourceCollectionPath);
+      if (_this.get(key + '.nested')) {
+        collection = Ember.get(_this.get(key + '.foreignResourceClass').resourceCollectionPath);
         collection.loadAll(value);
       } else {
-        if (this.deserializers && Ember.typeOf(this.deserializers[key]) === 'function') {
-          value = this.deserializers[key].call(this, value);
-        }
-
-        this.set(key, value);
+        _this.set(key, _this._deserializeAttr(key, json[key]));
       }
-    }
-
-    this.set('isFetched', true);
+    });
 
     Ember.endPropertyChanges(this);
 
-    this._updatePersistedProperties();
+    this._updatePersistedData();
 
     return this;
   },
@@ -163,8 +137,8 @@ Resourceful.Resource = Ember.Object.extend({
   },
 
   revert: function(key) {
-    this.set(key, this.persistedProperties[key]);
-    this.dirtyProperties.removeObject(key);
+    this.set(key, this._persistedData[key]);
+    this._dirtyAttributes.removeObject(key);
   },
 
   revertAll: function() {
@@ -172,29 +146,43 @@ Resourceful.Resource = Ember.Object.extend({
 
     Ember.beginPropertyChanges(this);
 
-    this.dirtyProperties.forEach(function(key) {
-      _this.set(key, _this.persistedProperties[key]);
+    Ember.keys(this._persistedData).forEach(function(key) {
+      _this.set(key, _this._persistedData[key]);
     });
 
-    this.dirtyProperties.clear();
+    this._dirtyAttributes.clear();
 
     Ember.endPropertyChanges(this);
   },
 
-  _updatePersistedProperties: function() {
-    if (Array.isArray(this.resourceProperties)) {
-      var persisted, _this = this;
+  _serializeAttr: function(key, value) {
+    var descs = Ember.meta(this.constructor.proto()).descs;
 
-      persisted = {};
-
-      this.resourceProperties.forEach(function(key) {
-        persisted[key] = _this.get(key);
-      });
-
-      this.set('persistedProperties', persisted);
-
-      this.dirtyProperties.clear();
+    if (descs[key] && descs[key]._meta.type && descs[key]._meta.type.serialize) {
+      return descs[key]._meta.type.serialize(value);
+    } else {
+      return value;
     }
+  },
+
+  _deserializeAttr: function(key, value) {
+    var descs = Ember.meta(this.constructor.proto()).descs;
+
+    if (descs[key] && descs[key]._meta.type && descs[key]._meta.type.deserialize) {
+      return descs[key]._meta.type.deserialize(value);
+    } else {
+      return value;
+    }
+  },
+
+  _updatePersistedData: function() {
+    var _this = this;
+
+    this._dirtyAttributes.clear();
+
+    Ember.keys(this.get('_data')).forEach(function(key) {
+      _this.set('_persistedData.' + key, _this.get('_data.' + key));
+    });
   },
 
   _resourceUrl: function() {

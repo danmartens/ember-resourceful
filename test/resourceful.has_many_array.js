@@ -11,6 +11,7 @@ describe('Resourceful.HasManyArray', function() {
     });
 
     GLOBAL.Post = Resourceful.Resource.extend({
+      title: Resourceful.attr(),
       comments: Resourceful.hasMany('Comment', { key: 'post_id', nested: true })
     });
   });

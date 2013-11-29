@@ -2,7 +2,9 @@ describe('Resourceful.ResourceCollection', function() {
   var Person, PersonCollection, people;
 
   Person = Resourceful.Resource.extend({
-    resourceProperties: ['firstName', 'lastName', 'age']
+    firstName: Resourceful.attr(),
+    lastName: Resourceful.attr(),
+    age: Resourceful.attr()
   });
 
   PersonCollection = Resourceful.ResourceCollection.extend({

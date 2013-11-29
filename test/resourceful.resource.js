@@ -2,19 +2,18 @@ describe('Resourceful.Resource', function() {
   var Person, person;
 
   Person = Resourceful.Resource.extend({
-    resourceProperties: ['firstName', 'lastName', 'age'],
+    firstName: Resourceful.attr(),
+    lastName: Resourceful.attr(),
 
-    deserializers: {
-      age: function(value) {
+    age: Resourceful.attr({
+      deserialize: function(value) {
         return parseInt(value, 10);
-      }
-    },
+      },
 
-    serializers: {
-      age: function(value) {
+      serialize: function(value) {
         return (value) ? value.toString() : null;
       }
-    }
+    })
   });
 
   beforeEach(function() {
@@ -28,8 +27,8 @@ describe('Resourceful.Resource', function() {
         lastName: 'Smith'
       });
 
-      expect(person.firstName).to.be('John');
-      expect(person.lastName).to.be('Smith');
+      expect(person.get('firstName')).to.be('John');
+      expect(person.get('lastName')).to.be('Smith');
     });
 
     it('uses a deserializer for the property if one exists', function() {
@@ -37,7 +36,7 @@ describe('Resourceful.Resource', function() {
         age: '30'
       });
 
-      expect(person.age).to.be(30);
+      expect(person.get('age')).to.be(30);
     });
   });
 
@@ -107,7 +106,8 @@ describe('Resourceful.Resource', function() {
       person.set('firstName', 'Jane');
       person.revert('firstName');
 
-      expect(person.firstName).to.be('John');
+      expect(person.get('firstName')).to.be('John');
+      expect(person._dirtyAttributes.contains('firstName')).to.be(false);
     });
   });
 
@@ -120,8 +120,11 @@ describe('Resourceful.Resource', function() {
 
       person.revertAll();
 
-      expect(person.firstName).to.be('Jane');
-      expect(person.lastName).to.be('Doe');
+      expect(person.get('firstName')).to.be('Jane');
+      expect(person.get('lastName')).to.be('Doe');
+
+      expect(person._dirtyAttributes.contains('firstName')).to.be(false);
+      expect(person._dirtyAttributes.contains('lastName')).to.be(false);
     });
   });
 
