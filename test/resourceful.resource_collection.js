@@ -81,7 +81,7 @@ describe('Resourceful.ResourceCollection', function() {
         expect(people.findById(1)).to.be(person);
       });
 
-      it('fetches the resource if it doesn\'n exist', function() {
+      it('fetches the resource if it doesn\'t exist', function() {
         people.findById(1);
 
         respond(requests[0], {
