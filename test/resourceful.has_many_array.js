@@ -12,7 +12,7 @@ describe('Resourceful.HasManyArray', function() {
 
     GLOBAL.Post = Resourceful.Resource.extend({
       title: Resourceful.attr(),
-      comments: Resourceful.hasMany('Comment', { key: 'post_id', nested: true })
+      comments: Resourceful.hasMany('Comment', { key: 'post_id', embedded: true })
     });
   });
 
@@ -52,7 +52,7 @@ describe('Resourceful.HasManyArray', function() {
     expect(post.get('comments.content.length')).to.be(0);
   });
 
-  it('deserializes nested resources', function() {
+  it('deserializes embedded resources', function() {
     post.deserialize({
       title: 'A Test Post',
       comments: [

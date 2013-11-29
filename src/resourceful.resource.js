@@ -48,7 +48,7 @@ Resourceful.Resource = Ember.Object.extend({
     Ember.keys(json).forEach(function(key) {
       var value = json[key];
 
-      if (_this.get(key + '.nested')) {
+      if (_this.get(key + '.embedded')) {
         collection = Ember.get(_this.get(key + '.foreignResourceClass').resourceCollectionPath);
         collection.loadAll(value);
       } else {

@@ -3,7 +3,7 @@ Resourceful.HasManyArray = Ember.ArrayProxy.extend({
   foreignResourceClass: null,
   primaryKey: 'id',
   foreignKey: null,
-  nested: false,
+  embedded: false,
 
   init: function() {
     this.set('content', Ember.A());

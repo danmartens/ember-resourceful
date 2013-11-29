@@ -52,7 +52,7 @@ Resourceful.hasMany = function(foreignResourceClass, options) {
       primaryResource: this,
       foreignResourceClass: foreignResourceClass,
       foreignKey: options.key,
-      nested: options.nested
+      embedded: options.embedded
     });
   });
 };
