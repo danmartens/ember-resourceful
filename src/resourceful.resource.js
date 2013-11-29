@@ -201,11 +201,11 @@ Resourceful.Resource.reopenClass({
     if (this.resourceCollectionPath) {
       return Ember.get(this.resourceCollectionPath).findById(id);
     } else {
-      throw new Error('You cannot use `find()` without specifying a `resourceCollectionPath` on the Resource\'s prototype!');
+      Ember.assert('You cannot use `find()` without specifying a `resourceCollectionPath` on the Resource\'s prototype!');
     }
   },
 
-  all: function() {
+  findAll: function() {
     var collection;
 
     if (this.resourceCollectionPath) {
@@ -217,7 +217,7 @@ Resourceful.Resource.reopenClass({
 
       return collection.get('content');
     } else {
-      throw new Error('You cannot use `all()` without specifying a `resourceCollectionPath` on the Resource\'s prototype!');
+      Ember.assert('You cannot use `findAll()` without specifying a `resourceCollectionPath` on the Resource\'s prototype!');
     }
   }
 });
