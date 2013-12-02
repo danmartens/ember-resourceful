@@ -35,7 +35,7 @@ Resourceful.HasManyArray = Ember.ArrayProxy.extend({
   },
 
   _foreignResourceArray: function() {
-    return Ember.get(this.get('foreignResourceClass').resourceCollectionPath);
+    return Resourceful.collectionFor(this.get('foreignResourceClass'));
   }.property('foreignResourceClass'),
 
   _primaryKeyValue: function() {

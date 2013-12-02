@@ -46,10 +46,10 @@ Resourceful.Resource = Ember.Object.extend({
     Ember.beginPropertyChanges(this);
 
     Ember.keys(json).forEach(function(key) {
-      var value = json[key];
+      var collection, value = json[key];
 
       if (_this.get(key + '.embedded')) {
-        collection = Ember.get(_this.get(key + '.foreignResourceClass').resourceCollectionPath);
+        collection = Resourceful.collectionFor(_this.get(key + '.foreignResourceClass'));
         collection.loadAll(value);
       } else {
         _this.set(key, _this._deserializeAttr(key, json[key]));
@@ -186,7 +186,9 @@ Resourceful.Resource = Ember.Object.extend({
   },
 
   _resourceUrl: function() {
-    var url = this.resourceAdapter.namespace + this.constructor.resourceUrl;
+    var url, adapter = this.get('resourceAdapter');
+
+    url = adapter.buildURI(this.constructor.resourceUrl);
 
     if (!this.get('isNew')) {
       url += '/' + this.get('id');
@@ -197,27 +199,23 @@ Resourceful.Resource = Ember.Object.extend({
 });
 
 Resourceful.Resource.reopenClass({
-  find: function(id) {
-    if (this.resourceCollectionPath) {
-      return Ember.get(this.resourceCollectionPath).findById(id);
+  find: function(id, options) {
+    var collection = Resourceful.collectionFor(this);
+
+    if (!id || Ember.typeOf(id) === 'object') {
+      return collection.findAllResources(id);
     } else {
-      Ember.assert('You cannot use `find()` without specifying a `resourceCollectionPath` on the Resource\'s prototype!');
+      return collection.findResource(id, options);
     }
   },
 
-  findAll: function() {
-    var collection;
+  fetch: function(id, options) {
+    var collection = Resourceful.collectionFor(this);
 
-    if (this.resourceCollectionPath) {
-      collection = Ember.get(this.resourceCollectionPath);
-
-      if (!collection.get('isFetched')) {
-        collection.fetchAll();
-      }
-
-      return collection.get('content');
+    if (!id || Ember.typeOf(id) === 'object') {
+      return collection.fetchAllResources(id);
     } else {
-      Ember.assert('You cannot use `findAll()` without specifying a `resourceCollectionPath` on the Resource\'s prototype!');
+      return collection.fetchResource(id, options);
     }
   }
 });

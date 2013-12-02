@@ -7,31 +7,16 @@ describe('Resourceful.ResourceCollection', function() {
     age: Resourceful.attr()
   });
 
+  Person.reopenClass({
+    resourceUrl: 'people'
+  });
+
   PersonCollection = Resourceful.ResourceCollection.extend({
     resourceClass: Person
   });
 
   beforeEach(function() {
     people = PersonCollection.create();
-  });
-
-  describe('#_resourceIndex', function() {
-    it('should be updated when a resource is added', function() {
-      var person = Person.create({ id: 1 });
-
-      people.pushObject(person);
-
-      expect(people._resourceIndex[1]).to.be(person);
-    });
-
-    it('should be updated when a resource is removed', function() {
-      var person = Person.create({ id: 1 });
-
-      people.pushObject(person);
-      people.removeObject(person);
-
-      expect(people._resourceIndex[1]).to.be(undefined);
-    });
   });
 
   describe('AJAX functionality', function() {
@@ -68,7 +53,7 @@ describe('Resourceful.ResourceCollection', function() {
       xhr.restore();
     });
 
-    describe('#findById', function() {
+    describe('#findResource', function() {
       it('returns the resource if it exists', function() {
         var person = Person.create({
           id: 1,
@@ -78,11 +63,11 @@ describe('Resourceful.ResourceCollection', function() {
 
         people.pushObject(person);
 
-        expect(people.findById(1)).to.be(person);
+        expect(people.findResource(1)).to.be(person);
       });
 
       it('fetches the resource if it doesn\'t exist', function() {
-        people.findById(1);
+        people.findResource(1);
 
         respond(requests[0], {
           id: 1,

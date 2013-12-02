@@ -27,7 +27,7 @@ Resourceful.BelongsToObject = Ember.ObjectProxy.extend({
   },
 
   _primaryResourceArray: function() {
-    return Ember.get(this.get('primaryResourceClass').resourceCollectionPath);
+    return Resourceful.collectionFor(this.get('primaryResourceClass'));
   }.property('primaryResourceClass'),
 
   _foreignKeyValue: function() {

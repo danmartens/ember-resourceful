@@ -13,42 +13,22 @@ Resourceful.ResourceCollection = Ember.ArrayProxy.extend({
     }
 
     this._super();
-
-    this._resourceIndex = {};
-
-    this.addArrayObserver(Ember.Object.create({
-      arrayWillChange: function(observedObj, start, removeCount, addCount) {
-        var removed;
-
-        if (removeCount > 0) {
-          observedObj.slice(start, start + removeCount).forEach(function(resource) {
-            if (_this._resourceIndex[resource.id]) {
-              delete _this._resourceIndex[resource.id];
-            }
-          });
-        }
-      },
-      arrayDidChange: function(observedObj, start, removeCount, addCount) {
-        var added, filtered;
-
-        if (addCount > 0) {
-          observedObj.slice(start, start + addCount).forEach(function(resource) {
-            _this._resourceIndex[resource.id] = resource;
-          });
-        }
-      }
-    }));
   },
 
-  findById: function(id) {
-    var resource;
+  findResource: function(id, options) {
+    var resource = this.findProperty('id', id);
 
-    resource = this._resourceIndex[id];
+    if (!options) {
+      options = {};
+    }
+
+    if (!options.url) {
+      options.url = this._resourceUrl();
+    }
 
     if (!resource) {
       resource = this.resourceClass.create({ id: id });
-
-      resource.fetchResource();
+      resource.fetchResource(options);
 
       this.pushObject(resource);
     }
@@ -56,7 +36,15 @@ Resourceful.ResourceCollection = Ember.ArrayProxy.extend({
     return resource;
   },
 
-  fetch: function(id, options) {
+  findAllResources: function(options) {
+    if (!this.get('isFetched')) {
+      this.fetchAllResources(options);
+    }
+
+    return this.get('content');
+  },
+
+  fetchResource: function(id, options) {
     var resource, _this = this;
 
     if (!options) {
@@ -71,11 +59,7 @@ Resourceful.ResourceCollection = Ember.ArrayProxy.extend({
       });
   },
 
-  fetchAll: function(options) {
-    var success, _this = this;
-
-    this.set('isFetching', true);
-
+  fetchAllResources: function(options) {
     if (!options) {
       options = {};
     }
@@ -92,18 +76,10 @@ Resourceful.ResourceCollection = Ember.ArrayProxy.extend({
       });
   },
 
-  loadAll: function(json) {
-    var _this = this;
-
-    json.forEach(function(j) {
-      _this.load(j);
-    });
-  },
-
   load: function(json) {
     var resource;
 
-    resource = this._resourceIndex[json.id];
+    resource = this.findProperty('id', json.id);
 
     if (!resource) {
       resource = this.resourceClass.create();
@@ -116,7 +92,16 @@ Resourceful.ResourceCollection = Ember.ArrayProxy.extend({
     }
   },
 
+  loadAll: function(json) {
+    var _this = this;
+
+    json.forEach(function(j) {
+      _this.load(j);
+    });
+  },
+
   _resourceUrl: function() {
-    return this.resourceAdapter.namespace + this.resourceClass.resourceUrl;
+    var adapter = this.get('resourceAdapter');
+    return adapter.buildURI(this.resourceClass.resourceUrl);
   }
 });

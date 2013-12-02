@@ -2,6 +2,14 @@ var slice = Array.prototype.slice;
 
 window.Resourceful = {};
 
+Resourceful.collectionFor = function(resourceClass) {
+  if (resourceClass.resourceCollectionPath) {
+    return Ember.get(resourceClass.resourceCollectionPath);
+  } else {
+    Ember.assert("Could not find a collection for this Resource. You must set `resourceCollectionPath` on the Resource's prototype.");
+  }
+};
+
 Resourceful.attr = function(type) {
   return Ember.computed(function(key, value) {
     if (!this._data) { this.setupData(); }

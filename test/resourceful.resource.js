@@ -16,6 +16,10 @@ describe('Resourceful.Resource', function() {
     })
   });
 
+  Person.reopenClass({
+    resourceUrl: 'people'
+  });
+
   beforeEach(function() {
     person = Person.create();
   });
