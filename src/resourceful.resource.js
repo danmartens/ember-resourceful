@@ -1,13 +1,14 @@
 Resourceful.Resource = Ember.Object.extend({
   resourceAdapter: null,
 
+  isPersisted: false,
+
   isFetching: false,
   isFetched: false,
   isSaving: false,
   isDeleting: false,
   isDeleted: false,
 
-  isNew: Ember.computed.equal('id', undefined),
   isDirty: Ember.computed.bool('_dirtyAttributes.length'),
 
   init: function() {
@@ -56,6 +57,8 @@ Resourceful.Resource = Ember.Object.extend({
       }
     });
 
+    this.set('isPersisted', true);
+
     Ember.endPropertyChanges(this);
 
     this._updatePersistedData();
@@ -103,7 +106,7 @@ Resourceful.Resource = Ember.Object.extend({
       options.data = this.serialize();
     }
 
-    method = this.get('isNew') ? 'create' : 'update';
+    method = this.get('isPersisted') ? 'create' : 'update';
 
     return this.resourceAdapter.request(method, options)
       .then(function(data, textStatus, jqXHR) {
@@ -178,11 +181,15 @@ Resourceful.Resource = Ember.Object.extend({
   _updatePersistedData: function() {
     var _this = this;
 
+    Ember.beginPropertyChanges(this);
+
     this._dirtyAttributes.clear();
 
     Ember.keys(this.get('_data')).forEach(function(key) {
       _this.set('_persistedData.' + key, _this.get('_data.' + key));
     });
+
+    Ember.endPropertyChanges(this);
   },
 
   _resourceUrl: function() {
@@ -190,7 +197,7 @@ Resourceful.Resource = Ember.Object.extend({
 
     url = adapter.buildURI(this.constructor.resourceUrl);
 
-    if (!this.get('isNew')) {
+    if (!this.get('isPersisted')) {
       url += '/' + this.get('id');
     }
 
