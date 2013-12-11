@@ -1,13 +1,14 @@
 Resourceful.Resource = Ember.Object.extend({
   resourceAdapter: null,
 
+  isPersisted: false,
+
   isFetching: false,
   isFetched: false,
   isSaving: false,
   isDeleting: false,
   isDeleted: false,
 
-  isNew: Ember.computed.equal('id', undefined),
   isDirty: Ember.computed.bool('_dirtyAttributes.length'),
 
   init: function() {
@@ -55,6 +56,8 @@ Resourceful.Resource = Ember.Object.extend({
         _this.set(key, _this._deserializeAttr(key, json[key]));
       }
     });
+
+    this.set('isPersisted', true);
 
     Ember.endPropertyChanges(this);
 
@@ -178,11 +181,15 @@ Resourceful.Resource = Ember.Object.extend({
   _updatePersistedData: function() {
     var _this = this;
 
+    Ember.beginPropertyChanges(this);
+
     this._dirtyAttributes.clear();
 
     Ember.keys(this.get('_data')).forEach(function(key) {
       _this.set('_persistedData.' + key, _this.get('_data.' + key));
     });
+
+    Ember.endPropertyChanges(this);
   },
 
   _resourceUrl: function() {

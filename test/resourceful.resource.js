@@ -24,26 +24,6 @@ describe('Resourceful.Resource', function() {
     person = Person.create();
   });
 
-  describe('#deserialize()', function() {
-    it('deserializes properties correctly', function() {
-      person.deserialize({
-        firstName: 'John',
-        lastName: 'Smith'
-      });
-
-      expect(person.get('firstName')).to.be('John');
-      expect(person.get('lastName')).to.be('Smith');
-    });
-
-    it('uses a deserializer for the property if one exists', function() {
-      person.deserialize({
-        age: '30'
-      });
-
-      expect(person.get('age')).to.be(30);
-    });
-  });
-
   describe('#serialize()', function() {
     it('serializes properties correctly', function() {
       var serialized;
@@ -70,14 +50,33 @@ describe('Resourceful.Resource', function() {
     });
   });
 
-  describe('#isNew', function() {
-    it('is false if #id is defined', function() {
-      person.set('id', 1);
-      expect(person.get('isNew')).to.be(false);
+  describe('#deserialize()', function() {
+    it('deserializes properties correctly', function() {
+      person.deserialize({
+        firstName: 'John',
+        lastName: 'Smith'
+      });
+
+      expect(person.get('firstName')).to.be('John');
+      expect(person.get('lastName')).to.be('Smith');
     });
 
-    it('is true if #id is null or undefined', function() {
-      expect(person.get('isNew')).to.be(true);
+    it('uses a deserializer for the property if one exists', function() {
+      person.deserialize({
+        age: '30'
+      });
+
+      expect(person.get('age')).to.be(30);
+    });
+
+    it('should indicate that the record is persisted', function() {
+      expect(person.get('isPersisted')).to.be(false);
+
+      person.deserialize({
+        firstName: 'John'
+      });
+
+      expect(person.get('isPersisted')).to.be(true);
     });
   });
 
