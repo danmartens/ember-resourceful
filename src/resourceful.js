@@ -34,8 +34,6 @@ Resourceful.attr = function(type) {
 
 Resourceful.hasOne = function(foreignResourceClass, options) {
   return Ember.computed(function(){
-    var resourceCollection;
-
     if (Ember.typeOf(foreignResourceClass) === 'string') {
       foreignResourceClass = Ember.get(foreignResourceClass);
     }
@@ -50,8 +48,6 @@ Resourceful.hasOne = function(foreignResourceClass, options) {
 
 Resourceful.hasMany = function(foreignResourceClass, options) {
   return Ember.computed(function(){
-    var resourceCollection;
-
     if (Ember.typeOf(foreignResourceClass) === 'string') {
       foreignResourceClass = Ember.get(foreignResourceClass);
     }
@@ -67,8 +63,6 @@ Resourceful.hasMany = function(foreignResourceClass, options) {
 
 Resourceful.belongsTo = function(primaryResourceClass, options) {
   return Ember.computed(function(){
-    var resourceCollection;
-
     if (Ember.typeOf(primaryResourceClass) === 'string') {
       primaryResourceClass = Ember.get(primaryResourceClass);
     }

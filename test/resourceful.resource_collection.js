@@ -54,16 +54,37 @@ describe('Resourceful.ResourceCollection', function() {
     });
 
     describe('#findResource', function() {
-      it('returns the resource if it exists', function() {
+      it('returns a promise that resolves with the resource', function(done) {
+        var promise = people.findResource();
+
+        promise.then(function(person) {
+          expect(person instanceof Person).to.be(true);
+          expect(person.get('id')).to.be(1);
+          done();
+        });
+
+        respond(requests[0], {
+          id: 1,
+          firstName: 'John',
+          lastName: 'Smith'
+        });
+      });
+
+      it('returns the resource if it exists', function(done) {
         var person = Person.create({
           id: 1,
           firstName: 'John',
           lastName: 'Smith'
         });
 
-        people.pushObject(person);
+        Ember.run(people, 'pushObject', person);
 
-        expect(people.findResource(1)).to.be(person);
+        Ember.run(function() {
+          people.findResource(1).then(function(resource) {
+            expect(resource).to.be(person);
+            done();
+          });
+        });
       });
 
       it('fetches the resource if it doesn\'t exist', function() {

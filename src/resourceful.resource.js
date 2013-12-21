@@ -68,7 +68,7 @@ Resourceful.Resource = Ember.Object.extend({
     return this;
   },
 
-  fetchResource: function(options) {
+  findResource: function(options) {
     var resolved, rejected, _this = this;
 
     this.set('isFetching', true);
@@ -238,16 +238,6 @@ Resourceful.Resource.reopenClass({
       return collection.findAllResources(id);
     } else {
       return collection.findResource(id, options);
-    }
-  },
-
-  fetch: function(id, options) {
-    var collection = Resourceful.collectionFor(this);
-
-    if (!id || Ember.typeOf(id) === 'object') {
-      return collection.fetchAllResources(id);
-    } else {
-      return collection.fetchResource(id, options);
     }
   }
 });

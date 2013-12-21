@@ -16,50 +16,29 @@ Resourceful.ResourceCollection = Ember.ArrayProxy.extend({
   },
 
   findResource: function(id, options) {
-    var resource = this.findProperty('id', id);
+    var promise, resource, _this = this;
 
-    if (!options) {
-      options = {};
-    }
+    resource = this.findProperty('id', id);
 
-    if (!options.url) {
-      options.url = this._resourceUrl();
-    }
+    promise = new Ember.RSVP.Promise(function(resolve, reject) {
+      if (resource) {
+        resolve(resource);
+      } else {
+        resource = _this.resourceClass.create({ id: id });
 
-    if (!resource) {
-      resource = this.resourceClass.create({ id: id });
-      resource.fetchResource(options);
+        resource.findResource(options).then(function() {
+          _this.pushObject(resource);
+          resolve(resource);
+        }, reject);
+      }
+    });
 
-      this.pushObject(resource);
-    }
-
-    return resource;
+    return promise;
   },
 
   findAllResources: function(options) {
-    if (!this.get('isFetched')) {
-      this.fetchAllResources(options);
-    }
+    var promise, _this = this;
 
-    return this.get('content');
-  },
-
-  fetchResource: function(id, options) {
-    var resource, _this = this;
-
-    if (!options) {
-      options = {};
-    }
-
-    resource = this.resourceClass.create({ id: id });
-
-    return resource.fetchResource(options)
-      .then(function() {
-        _this.pushObject(resource);
-      });
-  },
-
-  fetchAllResources: function(options) {
     if (!options) {
       options = {};
     }
@@ -68,12 +47,17 @@ Resourceful.ResourceCollection = Ember.ArrayProxy.extend({
       options.url = this._resourceUrl();
     }
 
-    return this.resourceAdapter.request('read', options)
-      .then(function(data, textStatus, jqXHR) {
-        _this.loadAll(data);
-        _this.set('isFetching', false);
-        _this.set('isFetched', true);
-      });
+    promise = new Ember.RSVP.Promise(function(resolve, reject) {
+      _this.resourceAdapter.request('read', options)
+        .then(function(data) {
+          _this.loadAll(data);
+          _this.set('isFetching', false);
+          _this.set('isFetched', true);
+          resolve(_this.get('content'));
+        }, reject);
+    });
+
+    return promise;
   },
 
   load: function(json) {
