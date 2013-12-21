@@ -1,0 +1,12 @@
+{
+  "name": "Ember Resourceful",
+  "version": "0.1.0",
+  "main": "ember-resourceful.js",
+  "ignore": [
+    "node_modules",
+    "bower_components",
+    "src",
+    "vendor",
+    "test"
+  ]
+}

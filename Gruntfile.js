@@ -14,7 +14,7 @@ module.exports = function(grunt) {
           'src/resourceful.resource_collection.js',
           'src/resourceful.resource_adapter.js'
         ],
-        dest: 'dist/ember-resourceful-<%= pkg.version %>.js'
+        dest: 'ember-resourceful.js'
       }
     },
 
