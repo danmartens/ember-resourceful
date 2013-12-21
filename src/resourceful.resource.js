@@ -149,21 +149,21 @@ Resourceful.Resource = Ember.Object.extend({
     return this._request('delete', options).then(resolved, rejected);
   },
 
-  revert: function(key) {
-    this.set(key, this._persistedData[key]);
-    this._dirtyAttributes.removeObject(key);
-  },
+  revertAttributes: function(attributes) {
+    var keys, _this = this;
 
-  revertAll: function() {
-    var _this = this;
+    if (Ember.typeOf(attributes) == 'string' && arguments.length > 0) {
+      attributes = Array.prototype.slice.call(arguments, 0);
+    }
+
+    keys = attributes ? attributes : Ember.keys(this._persistedData);
 
     Ember.beginPropertyChanges(this);
 
-    Ember.keys(this._persistedData).forEach(function(key) {
+    keys.forEach(function(key) {
       _this.set(key, _this._persistedData[key]);
+      _this._dirtyAttributes.removeObject(key);
     });
-
-    this._dirtyAttributes.clear();
 
     Ember.endPropertyChanges(this);
   },

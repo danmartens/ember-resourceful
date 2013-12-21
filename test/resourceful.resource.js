@@ -102,29 +102,33 @@ describe('Resourceful.Resource', function() {
     });
   });
 
-  describe('#revert()', function() {
-    it('will revert a changed property', function() {
-      var person = Person.create().deserialize({ firstName: 'John' });
+  describe('#revertAttributes()', function() {
+    var person;
 
+    beforeEach(function() {
+      person = Person.create().deserialize({
+        firstName: 'John',
+        lastName: 'Smith'
+      });
+    });
+
+    it('will revert specific attributes', function() {
       person.set('firstName', 'Jane');
-      person.revert('firstName');
+
+      person.revertAttributes('firstName');
 
       expect(person.get('firstName')).to.be('John');
       expect(person._dirtyAttributes.contains('firstName')).to.be(false);
     });
-  });
 
-  describe('#revertAll()', function() {
-    it('will revert all changed properties', function() {
-      var person = Person.create().deserialize({ firstName: 'Jane', lastName: 'Doe' });
+    it('will revert all attributes', function() {
+      person.set('firstName', 'Jane');
+      person.set('lastName', 'Doe');
 
-      person.set('firstName', 'John');
-      person.set('lastName', 'Smith');
+      person.revertAttributes();
 
-      person.revertAll();
-
-      expect(person.get('firstName')).to.be('Jane');
-      expect(person.get('lastName')).to.be('Doe');
+      expect(person.get('firstName')).to.be('John');
+      expect(person.get('lastName')).to.be('Smith');
 
       expect(person._dirtyAttributes.contains('firstName')).to.be(false);
       expect(person._dirtyAttributes.contains('lastName')).to.be(false);
