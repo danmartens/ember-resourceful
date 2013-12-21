@@ -1,3 +1,7 @@
+/**
+* @class Resourceful.Resource
+* @constructor
+*/
 Resourceful.Resource = Ember.Object.extend({
   resourceAdapter: null,
 
@@ -18,6 +22,9 @@ Resourceful.Resource = Ember.Object.extend({
     this._super();
   },
 
+  /**
+  * @method setupData
+  */
   setupData: function() {
     this.setProperties({
       _data: {},
@@ -26,6 +33,12 @@ Resourceful.Resource = Ember.Object.extend({
     });
   },
 
+  /**
+  * Serializes the resource's data so it's ready to be sent to the server.
+  *
+  * @method serialize
+  * @return {Object} Serialized data object
+  */
   serialize: function() {
     var serialized = {},
         data = this.get('_data'),
@@ -43,19 +56,26 @@ Resourceful.Resource = Ember.Object.extend({
     }
   },
 
-  deserialize: function(json) {
+  /**
+  * Deserializes the passed data and adds it to the resource.
+  *
+  * @method deserialize
+  * @param {Object} data The data to be deserialized
+  * @return {Object} Serialized data object
+  */
+  deserialize: function(data) {
     var _this = this;
 
     Ember.beginPropertyChanges(this);
 
-    Ember.keys(json).forEach(function(key) {
-      var collection, value = json[key];
+    Ember.keys(data).forEach(function(key) {
+      var collection, value = data[key];
 
       if (_this.get(key + '.embedded')) {
         collection = Resourceful.collectionFor(_this.get(key + '.foreignResourceClass'));
         collection.loadAll(value);
       } else {
-        _this.set(key, _this._deserializeAttr(key, json[key]));
+        _this.set(key, _this._deserializeAttr(key, data[key]));
       }
     });
 
@@ -68,6 +88,13 @@ Resourceful.Resource = Ember.Object.extend({
     return this;
   },
 
+  /**
+  * Loads the resource from the server.
+  *
+  * @method findResource
+  * @param {Object} options Options to be passed to `ResourceAdapter#request()`
+  * @return {RSVP.Promise} The promise returned from the ResourceAdapter
+  */
   findResource: function(options) {
     var resolved, rejected, _this = this;
 
@@ -93,6 +120,13 @@ Resourceful.Resource = Ember.Object.extend({
     return this._request('read', options).then(resolved, rejected);
   },
 
+  /**
+  * Persists the resource to the server.
+  *
+  * @method saveResource
+  * @param {Object} options Options to be passed to `ResourceAdapter#request()`
+  * @return {RSVP.Promise} The promise returned from the ResourceAdapter
+  */
   saveResource: function(options) {
     var method, resolved, promise, _this = this;
 
@@ -124,6 +158,13 @@ Resourceful.Resource = Ember.Object.extend({
     return this._request(method, options).then(resolved, rejected);
   },
 
+  /**
+  * Deletes the resource from the server.
+  *
+  * @method deleteResource
+  * @param {Object} options Options to be passed to `ResourceAdapter#request()`
+  * @return {RSVP.Promise} The promise returned from the ResourceAdapter
+  */
   deleteResource: function(options) {
     var resolved, rejected, _this = this;
 
@@ -149,14 +190,22 @@ Resourceful.Resource = Ember.Object.extend({
     return this._request('delete', options).then(resolved, rejected);
   },
 
-  revertAttributes: function(attributes) {
+  /**
+  * Reverts the passed attributes to their previous values (or all attributes if nothing is passed).
+  *
+  * @method revertAttributes
+  * @param {Array} keys Attributes to be reverted
+  */
+  revertAttributes: function(keys) {
     var keys, _this = this;
 
-    if (Ember.typeOf(attributes) == 'string' && arguments.length > 0) {
-      attributes = Array.prototype.slice.call(arguments, 0);
+    if (Ember.typeOf(keys) == 'string' && arguments.length > 0) {
+      keys = Array.prototype.slice.call(arguments, 0);
     }
 
-    keys = attributes ? attributes : Ember.keys(this._persistedData);
+    if (!keys) {
+      keys = Ember.keys(this._persistedData);
+    }
 
     Ember.beginPropertyChanges(this);
 

@@ -1,0 +1,8 @@
+{
+  "name": "Ember Resourceful",
+  "url": "https://github.com/danmartens/ember-resourceful",
+  "options": {
+    "paths": [ "./src" ],
+    "outdir": "./doc"
+  }
+}
