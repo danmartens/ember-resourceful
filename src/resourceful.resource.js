@@ -11,8 +11,10 @@ Resourceful.Resource = Ember.Object.extend({
 
   isDirty: Ember.computed.bool('_dirtyAttributes.length'),
 
+  _lastRequest: null,
+
   init: function() {
-    if (!this._data) { this.setupData(); }
+    if (!this._data) this.setupData();
     this._super();
   },
 
@@ -67,7 +69,7 @@ Resourceful.Resource = Ember.Object.extend({
   },
 
   fetchResource: function(options) {
-    var _this = this;
+    var resolved, rejected, _this = this;
 
     this.set('isFetching', true);
 
@@ -79,18 +81,20 @@ Resourceful.Resource = Ember.Object.extend({
       options.url = this._resourceUrl();
     }
 
-    return this.resourceAdapter.request('read', options)
-      .then(function(data, textStatus, jqXHR) {
-        _this.deserialize(data);
-        _this._updatePersistedProperties();
-        _this.set('isFetching', false);
-      }, function() {
-        _this.set('isFetching', false);
-      });
+    resolved = function(data) {
+      _this.deserialize(data);
+      _this.set('isFetching', false);
+    };
+
+    rejected = function() {
+      _this.set('isFetching', false);
+    }
+
+    return this._request('read', options).then(resolved, rejected);
   },
 
   saveResource: function(options) {
-    var success, method, _this = this;
+    var method, resolved, promise, _this = this;
 
     this.set('isSaving', true);
 
@@ -108,17 +112,20 @@ Resourceful.Resource = Ember.Object.extend({
 
     method = this.get('isPersisted') ? 'create' : 'update';
 
-    return this.resourceAdapter.request(method, options)
-      .then(function(data, textStatus, jqXHR) {
-        _this.deserialize(data);
-        _this._updatePersistedProperties();
+    resolved = function(data) {
+      _this.deserialize(data);
+      _this.set('isSaving', false);
+    };
 
-        _this.set('isSaving', false);
-      });
+    rejected = function() {
+      _this.set('isSaving', false);
+    };
+
+    return this._request(method, options).then(resolved, rejected);
   },
 
   deleteResource: function(options) {
-    var _this = this;
+    var resolved, rejected, _this = this;
 
     this.set('isDeleting', true);
 
@@ -130,13 +137,16 @@ Resourceful.Resource = Ember.Object.extend({
       options.url = this._resourceUrl();
     }
 
-    return this.resourceAdapter.request('delete', options)
-      .then(function() {
-        _this.set('isDeleting', false);
-        _this.set('isDeleted', true);
-      }, function() {
-        _this.set('isDeleting', false);
-      });
+    resolved = function() {
+      _this.set('isDeleting', false);
+      _this.set('isDeleted', true);
+    };
+
+    rejected = function() {
+      _this.set('isDeleting', false);
+    };
+
+    return this._request('delete', options).then(resolved, rejected);
   },
 
   revert: function(key) {
@@ -202,6 +212,21 @@ Resourceful.Resource = Ember.Object.extend({
     }
 
     return url;
+  },
+
+  _request: function() {
+    var args, adapter, request;
+
+    args = arguments;
+    adapter = this.resourceAdapter;
+
+    request = function() {
+      return adapter.request.apply(adapter, args);
+    };
+
+    this._lastRequest = (this._lastRequest) ? this._lastRequest.then(request, request) : request();
+
+    return this._lastRequest;
   }
 });
 

@@ -192,5 +192,20 @@ describe('Resourceful.Resource', function() {
         respond(requests[0], {});
       });
     });
+
+    describe('#_request()', function() {
+      it('it only sends one request at a time', function() {
+        var firstPromise = person._request('read', { url: '/people/1' });
+        var secondPromise = person._request('read', { url: '/people/1' });
+
+        expect(requests.length).to.be(1);
+
+        respond(requests[0], {});
+
+        expect(requests.length).to.be(2);
+
+        respond(requests[1], {});
+      });
+    });
   });
 });
